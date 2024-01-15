@@ -1,12 +1,12 @@
 {
   "filter": {
-    "BACKGROUND": {
+    "BACKGROUND": [
       "summer",
       "winter"
-    },
-    "EYE": {
+      ],
+    "EYE": [
       "grey eyes",
       "lilac eyes"
-    }
+    ]
   }
 }
