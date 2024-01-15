@@ -1,12 +1,18 @@
 {
-  "filter": [
-    "BACKGROUND": [
-      "summer",
-      "winter"
-      ],
-    "EYE": [
-      "grey eyes",
-      "lilac eyes"
+  [
+    "price": [
+      "low": 0,
+      "high": 50
+    ],
+    "filter": [
+      "BACKGROUND": [
+        "summer",
+        "winter"
+        ],
+      "EYE": [
+        "grey eyes",
+        "lilac eyes"
+      ]
     ]
   ]
 }
