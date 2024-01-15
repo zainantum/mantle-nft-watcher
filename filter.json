@@ -1,5 +1,5 @@
 {
-  "filter": {
+  "filter": [
     "BACKGROUND": [
       "summer",
       "winter"
@@ -8,5 +8,5 @@
       "grey eyes",
       "lilac eyes"
     ]
-  }
+  ]
 }
