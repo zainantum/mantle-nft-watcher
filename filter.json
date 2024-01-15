@@ -1,8 +1,4 @@
 {
-  "price": {
-    "low": 0,
-    "high": 50
-  },
   "filter": {
     "BACKGROUND": {
       "summer", "winter"
