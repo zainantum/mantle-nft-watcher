@@ -1,0 +1,1 @@
+Scraping All NFT on Mantle with custom filter. This script will send notification to your telegram if your favorite NFT price changed. This script only send notification about new NFT that not in old.json or NFT price different with old.json, after that data in old.json will updated.
