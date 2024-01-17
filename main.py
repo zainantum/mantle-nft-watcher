@@ -9,20 +9,26 @@ from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import TimeoutException
 
 
-all_nft_data = {}
+all_nft_data = []
+old_data = json.load(open("old.json"))
 
 
-def send_to_telegram():
-    global all_nft_data
-    token = 'replace_token'
+def send_to_telegram(message_text):
+    print("Send all data to telegram")
+    token = ''
+    chatid = ''
     apiURL = 'https://api.telegram.org/bot'+token+'/sendMessage'
     try:
-        response = requests.post(apiURL, json={'chat_id': replace_chatid, 'text': all_nft_data})
+        # message_text = "\n".join([f"{key}: {value}" for key, value in all_nft_data.items()])
+        # print(message_text)
+        response = requests.post(apiURL, json={'chat_id': chatid, 'text': message_text, 'parse_mode': 'html'})
+        # print(response.json())
     except Exception as e:
         print(e)
 
 
 def get_filter():
+    print("Request filter data")
     url = ''
     resp = requests.get(url)
     data_filter = resp.json()
@@ -32,8 +38,9 @@ def get_filter():
 
 
 def get_all_nft(driver):
-    global all_nft_data
+    print("Get all NFT using filter")
     try:
+        global all_nft_data, old_data
         time.sleep(5)
         count = 0
         all_nft = driver.find_elements(By.XPATH, "//span[@data-anchor='item-title']")
@@ -45,21 +52,31 @@ def get_all_nft(driver):
                 link = driver.execute_script(
                     "return arguments[0].parentNode.parentNode.parentNode.parentNode.parentNode.href;",
                     nft)
-                # print("Name: ", nft.text, price, link)
-                # if count % 4 == 0:
-                all_nft_data[nft.text] = link
+                print("Name: ", nft.text, price, link)
+                if (nft.text in old_data and old_data[nft.text] != price) or nft.text not in old_data:
+                    message = nft.text+" \nprice: "+price+ " \n"+link
+                    send_to_telegram(message)
+                
+                old_data[nft.text] = price
+                all_nft_data.append(nft.text)
+                # all_nft_data[nft.text] = link
+                # print(all_nft_data)
                 if nft == all_nft[-1]:
                     driver.execute_script("arguments[0].scrollIntoView();", nft)
                     time.sleep(2)
                     get_all_nft(driver)
 
             count += 1
+            
+        # print(all_nft_data)
     except WebDriverException as e:
         print(e)
         driver.quit()
 
 
 def run():
+    print("Preparing requirement")
+    global old_data
     filter_list = ["Status", "Price", "BACKGROUND", "EYE", "EYEBROW", "HAIR", "HAND", "HEADGEAR", "MOUTH", "OUTFIT",
                    "RARE_HAIR", "SKIN"]
     data_filter = json.load(open("filter.json"))
@@ -68,19 +85,21 @@ def run():
     # print(filter_trait)
     chrome_options = webdriver.ChromeOptions()
     service = Service(executable_path=ChromeDriverManager().install())
-    # chrome_options.add_argument('headless')
+    chrome_options.add_argument('headless')
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--disable-dev-shm-usage')
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.maximize_window()
     wait = WebDriverWait(driver, 10)
     try:
+        print("Accessing NFT site")
         driver.get("https://mintle.app/explore/MANTLE:0x7cf4ac414c94e03ecb2a7d6ea8f79087453caef0")
         time.sleep(5)
         # close cookie btn
         cookie_btn = driver.find_element(By.XPATH, "//*[@id='root']/div[2]/button")
         if cookie_btn:
             cookie_btn.click()
+        print("Fill all filter")
         price_elm = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//input[contains(@type, 'number')]")))
         # set lowest price
         price_elm[0].send_keys(filter_price["lowest"])
@@ -117,6 +136,7 @@ def run():
             count += 1
 
         # apply all filter
+        print("Apply all filter")
         apply_elm = driver.find_element(By.XPATH,
                                         "//*[@id='root']/div/div/div/div[3]/div/div/div[1]/div/div/div[1]/div/div/div[3]/div/div[1]/button")
         driver.execute_script("arguments[0].scrollIntoView();", apply_elm)
@@ -124,12 +144,15 @@ def run():
         # start scraping all nft
         time.sleep(2)
         get_all_nft(driver)
-        send_to_telegram()
+        with open('old.json', 'w') as json_file:
+            json.dump(old_data, json_file, indent=2)
+        # send_to_telegram()
         time.sleep(5)
         driver.quit()
     except WebDriverException as e:
         driver.quit()
 
 
-get_filter()
-run()
+while True:
+    get_filter()
+    run()
