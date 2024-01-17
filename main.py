@@ -9,6 +9,19 @@ from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import TimeoutException
 
 
+all_nft_data = {}
+
+
+def send_to_telegram():
+    global all_nft_data
+    token = 'replace_token'
+    apiURL = 'https://api.telegram.org/bot'+token+'/sendMessage'
+    try:
+        response = requests.post(apiURL, json={'chat_id': replace_chatid, 'text': all_nft_data})
+    except Exception as e:
+        print(e)
+
+
 def get_filter():
     url = ''
     resp = requests.get(url)
@@ -18,25 +31,27 @@ def get_filter():
         json.dump(data_filter, json_file, indent=2)
 
 
-def get_all_nft(driver, callback):
+def get_all_nft(driver):
+    global all_nft_data
     try:
         time.sleep(5)
         count = 0
-        if callback:
-            all_nft = callback.find_elements(By.XPATH, "//following-sibling::span[position() <= 3][@data-anchor='item-title']")
-        else:
-            all_nft = driver.find_elements(By.XPATH, "//span[@data-anchor='item-title']")
-        print(len(all_nft))
+        all_nft = driver.find_elements(By.XPATH, "//span[@data-anchor='item-title']")
         for nft in all_nft:
-            children = driver.execute_script(
-                "return arguments[0].parentNode.parentNode.parentNode.nextElementSibling.querySelector('span.sc-bjUoiL.sc-idiyUo.fMQLyS.hJGsTm').textContent;",
-                nft)
-            print("Name: ", nft.text, children)
-            if count % 4 == 0:
-                driver.execute_script("arguments[0].scrollIntoView();", nft)
-                time.sleep(2)
-            if nft == all_nft[-1]:
-                get_all_nft(driver, callback)
+            if nft.text not in all_nft_data:
+                price = driver.execute_script(
+                    "return arguments[0].parentNode.parentNode.parentNode.nextElementSibling.querySelector('span.sc-bjUoiL.sc-idiyUo.fMQLyS.hJGsTm').textContent;",
+                    nft)
+                link = driver.execute_script(
+                    "return arguments[0].parentNode.parentNode.parentNode.parentNode.parentNode.href;",
+                    nft)
+                # print("Name: ", nft.text, price, link)
+                # if count % 4 == 0:
+                all_nft_data[nft.text] = link
+                if nft == all_nft[-1]:
+                    driver.execute_script("arguments[0].scrollIntoView();", nft)
+                    time.sleep(2)
+                    get_all_nft(driver)
 
             count += 1
     except WebDriverException as e:
@@ -50,7 +65,7 @@ def run():
     data_filter = json.load(open("filter.json"))
     filter_price = data_filter["price"]
     filter_trait = data_filter["filter"]
-    print(filter_trait)
+    # print(filter_trait)
     chrome_options = webdriver.ChromeOptions()
     service = Service(executable_path=ChromeDriverManager().install())
     # chrome_options.add_argument('headless')
@@ -77,10 +92,10 @@ def run():
         count = 0
         for elm in traits_elm:
             if count > 1 and filter_list[count] in filter_trait:
-                print(filter_list[count], filter_trait[filter_list[count]])
+                # print(filter_list[count], filter_trait[filter_list[count]])
                 filter = filter_list[count] + "-filter"
                 filter_scroll = filter_list[count - 1] + "-filter"
-                print(filter_scroll)
+                # print(filter_scroll)
                 # scroll element to last filter
                 if filter_scroll != "HAND-filter" and filter_scroll != "OUTFIT-filter":
                     driver.execute_script("arguments[0].scrollIntoView();",
@@ -108,8 +123,8 @@ def run():
         apply_elm.click()
         # start scraping all nft
         time.sleep(2)
-        get_all_nft(driver, "")
-
+        get_all_nft(driver)
+        send_to_telegram()
         time.sleep(5)
         driver.quit()
     except WebDriverException as e:
