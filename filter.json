@@ -1,16 +1,1 @@
-{
-    "price": {
-        "low": 0,
-        "high": 50
-    },
-    "filter": {
-        "BACKGROUND": [
-            "summer",
-            "winter"
-            ],
-        "EYE": [
-            "grey eyes",
-            "lilac eyes"
-        ]
-    }
-}
+{"price":{"lowest":0,"highest":"55"},"filter":{"Status":[],"Price":[],"BACKGROUND":["SUMMER","WINTER"],"EYE":["FUCHSIA EYES","GREY EYES"],"EYEBROW":[],"HAIR":[],"HAND":[],"HEADGEAR":[],"MOUTH":[],"OUTFIT":[],"RARE_HAIR":[],"SKIN":[]}}
