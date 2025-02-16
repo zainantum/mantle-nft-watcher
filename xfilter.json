@@ -1,9 +1,9 @@
-{
+{[
   "query": "(meme OR token OR coin OR memecoin) (launched OR live OR here OR launching OR launch OR contract OR CA OR pump.fun/coin/ OR app.streamflow.finance/contract/solana/mainnet/)",
   "max_oldness": "300",
   "min_replies": "10",
   "min_faves": "150",
   "min_retweets": "20",
   "until": "2025-01-01",
-  "since": "2024-04-01"
+  "since": "2024-04-01"]
 }
